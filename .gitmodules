@@ -1,0 +1,8 @@
+[submodule "libadt"]
+	path = libadt
+	url = ../libadt
+	branch = master
+[submodule "geneie"]
+	path = geneie
+	url = ../geneie
+	branch = master
