@@ -9,9 +9,25 @@ and its dependencies for WebAssembly using emsdk.
 Before running `build.sh`, you should have _installed_
 and _activated_ emsdk: https://emscripten.org/docs/getting\_started/downloads.html#installation-instructions-using-the-emsdk-recommended
 
-`build.sh` will download Geneie and its dependencies,
-build them in a new directory called `prefix/`, then
-build the result with `emcc` into the files `libgeneie.wasm`
-and `libgeneie.js` in the current directory. Installing both
-files into your site will then provide the JavaScript
-API via `Module.Geneie`.
+You must also initialize the git submodules, if you have
+not done so:
+
+```
+git submodule update --init
+```
+
+`build.sh` will build them in a new directory called `prefix/`,
+then build the result with `emcc` into the files `libgeneie.wasm`
+and `libgeneie.js` in the current directory. Installing
+both files into your site will then provide the JavaScript API via
+a Promise object called, `Geneie`.
+
+```html
+<script src="libgeneie.js"></script>
+<script>
+	Geneie().then(g => {
+		// Should print Array [ "T", "-CTG" ]
+		console.log(g.encode("ACT-CTG"));
+	});
+</script>
+```
