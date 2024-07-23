@@ -25,9 +25,14 @@ a Promise object called, `Geneie`.
 ```html
 <script src="libgeneie.js"></script>
 <script>
-	Geneie().then(g => {
-		// Should print Array [ "T", "-CTG" ]
-		console.log(g.encode("ACT-CTG"));
+	Geneie().then(Geneie => {
+		var sequence = Geneie.Sequence.fromString("ACT-CTG");
+		sequence.encode().then(result => {
+			// Should print Array [ "T", "-CTG" ]
+			console.log([result[0].toString(), result[1].toString()]);
+		});
 	});
 </script>
 ```
+
+Better documentation is en route.
