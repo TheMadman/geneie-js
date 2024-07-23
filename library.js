@@ -19,6 +19,7 @@ addToLibrary({
 		'referenceRegistry',
 		'geneie_sequence_tools_ref_from_sequence',
 		'geneie_sequence_tools_encode',
+		'geneie_sequence_tools_splice',
 		'geneie_sequence_ref_index',
 		'geneie_sequence_ref_trunc',
 		'geneie_sequence_ref_valid',
@@ -222,17 +223,23 @@ addToLibrary({
 		 */
 		spliceAll(spliceFunction) {
 			return new Promise(resolve => {
-				let realSpliceArg = (outParam, inParam) => {
-					let result = spliceFunction(new self(inParam)); // ?!?
-					{{{ makeSetValue('outParam', 4, 'getValue(result.ptr + 4, "u32")', 'u32') }}}
-					{{{ makeSetValue('outParam', 0, 'getValue(result.ptr, "u32")', 'u32') }}}
+				let realSpliceArg = (outParam, inParam, unused) => {
+					let result = spliceFunction(new Reference(inParam)); // ?!?
+					if (!result) {
+						{{{ makeSetValue('outParam', 4, 0, 'u32') }}}
+						{{{ makeSetValue('outParam', 0, 0, 'u32') }}}
+					} else {
+						{{{ makeSetValue('outParam', 4, 'getValue(result.ptr + 4, "i32")', 'u32') }}}
+						{{{ makeSetValue('outParam', 0, 'getValue(result.ptr, "i32")', 'u32') }}}
+					}
 				};
-				var functionPointer = addFunction(realSpliceArg);
+				let functionPointer = addFunction(realSpliceArg, 'vppp');
+				console.log(functionPointer);
 
 				_geneie_sequence_tools_splice(
-					this.ref.ptr,
-					this.ref.ptr,
-					functionPointer
+					this.ptr,
+					this.ptr,
+					functionPointer,
 				);
 
 				removeFunction(functionPointer);

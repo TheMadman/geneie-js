@@ -1,3 +1,5 @@
 stringToUTF8
 UTF8ToString
 lengthBytesUTF8
+addFunction
+removeFunction
