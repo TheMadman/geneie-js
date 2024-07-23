@@ -235,7 +235,7 @@ addToLibrary({
 		 * 	splice.
 		 *
 		 * @return {Promise} A new Promise object which, when fulfilled,
-		 * 	will return the new Sequence.
+		 * 	will return the current Reference, mutated with the result.
 		 */
 		spliceAll(spliceFunction) {
 			return new Promise(resolve => {
@@ -384,7 +384,9 @@ addToLibrary({
 		 * This function works on a copy of the Sequence: the current
 		 * Sequence is not mutated.
 		 *
-		 * @return {Promise} See Reference.encode().
+		 * @return {Promise} A Promise which, when resolved,
+		 * 	returns an Array of new Sequences containing:
+		 * 	[ encodeResult, unencodedRemainder ].
 		 */
 		encode() {
 			return Reference.fromSequence(this.copy())
@@ -399,7 +401,8 @@ addToLibrary({
 		 * Sequence is not mutated.
 		 *
 		 * @param {function} spliceFunction see Reference.spliceAll().
-		 * @return {Array} see Reference.spliceAll().
+		 * @return {Promise} A Promise which, when resolved,
+		 * 	returns a new Sequence with the splice result.
 		 */
 		spliceAll(spliceFunction) {
 			return Reference.fromSequence(this.copy())
