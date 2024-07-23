@@ -85,7 +85,7 @@ addToLibrary({
 		 * @returns A String object with the contents of the reference.
 		 */
 		toString() {
-			if (!_geneie_sequence_ref_valid(this.ptr))
+			if (!this.valid())
 				return "";
 
 			return UTF8ToString(
