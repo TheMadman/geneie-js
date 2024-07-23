@@ -24,6 +24,18 @@ addToLibrary({
 		'geneie_sequence_ref_trunc',
 		'geneie_sequence_ref_valid',
 	],
+	$Reference__docs: `/**
+	* Represents a Reference to a Sequence.
+	*
+	* Most of the API operates on Sequence objects, which
+	* mutate their values in-place, avoiding potentially
+	* expensive copies of large data.
+	*
+	* The Sequence object's processing functions are just
+	* convenient wrappers which create a copy of the sequence,
+	* wrap it in a Reference, then call the Reference's
+	* implementation.
+	*/`,
 	$Reference: class {
 
 		/*
@@ -212,6 +224,10 @@ addToLibrary({
 		 * Reference.trunc() to create a new Reference object representing
 		 * the section to splice. Finally, return the new reference.
 		 *
+		 * If nothing needs to be spliced, the spliceFunction should
+		 * return a falsy value, such as `false`, `null` or `undefined`,
+		 * or nothing at all.
+		 *
 		 * This function mutates the sequence in-place.
 		 *
 		 * @param {function} spliceFunction A function taking a Reference and
@@ -234,7 +250,6 @@ addToLibrary({
 					}
 				};
 				let functionPointer = addFunction(realSpliceArg, 'vppp');
-				console.log(functionPointer);
 
 				_geneie_sequence_tools_splice(
 					this.ptr,
@@ -255,7 +270,28 @@ addToLibrary({
 		'free',
 		'geneie_sequence_from_string',
 		'geneie_sequence_copy',
+		'geneie_sequence_tools_sequence_from_ref',
 	],
+	$Sequence__docs: `/**
+	* Represents an allocated Sequence.
+	*
+	* The Sequence object is responsible for actually
+	* managing the memory of the sequence strings being
+	* operated on.
+	*
+	* These objects are registered with the garbage collector:
+	* you can treat them like ordinary objects.
+	*
+	* The intended method of creating a new Sequence is
+	* with the fromString() factory function.
+	*
+	* This object's processing functions create copies
+	* of the sequence to operate on and are non-destructive.
+	*
+	* To reduce memory usage, at the cost of mutating the
+	* data irrevocably, use Reference.fromSequence() and
+	* perform processing on that.
+	*/`,
 	$Sequence: class {
 		/**
 		 * Constructs a raw Sequence object.
@@ -297,6 +333,12 @@ addToLibrary({
 			_geneie_sequence_from_string(that.ptr, string_tmp);
 			_free(string_tmp);
 
+			return that;
+		}
+
+		static fromRef(ref) {
+			var that = new Sequence();
+			_geneie_sequence_tools_sequence_from_ref(that.ptr, ref.ptr);
 			return that;
 		}
 
@@ -345,7 +387,9 @@ addToLibrary({
 		 * @return {Promise} See Reference.encode().
 		 */
 		encode() {
-			return Reference.fromSequence(this.copy()).encode();
+			return Reference.fromSequence(this.copy())
+				.encode()
+				.then(arr => arr.map(ref => Sequence.fromRef(ref)));
 		}
 
 		/**
@@ -358,7 +402,9 @@ addToLibrary({
 		 * @return {Array} see Reference.spliceAll().
 		 */
 		spliceAll(spliceFunction) {
-			return Reference.fromSequence(this.copy()).spliceAll(spliceFunction);
+			return Reference.fromSequence(this.copy())
+				.spliceAll(spliceFunction)
+				.then(ref => Sequence.fromRef(ref));
 		}
 	},
 });
