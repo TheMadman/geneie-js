@@ -1,56 +1,357 @@
 'use strict';
 
 addToLibrary({
-	$sequence__deps: [
+	sequenceRegistry__deps: [
+		'free',
+		'geneie_sequence_free',
+	],
+	sequenceRegistry__postset: '_sequenceRegistry = new FinalizationRegistry(ptr => {_geneie_sequence_free(ptr);_free(ptr);});',
+	sequenceRegistry: {},
+
+	referenceRegistry__deps: [
+		'free',
+	],
+	referenceRegistry__postset: '_referenceRegistry = new FinalizationRegistry(ptr => {_free(ptr);});',
+	referenceRegistry: {},
+
+	$Reference__deps: [
+		'malloc',
+		'referenceRegistry',
+		'geneie_sequence_tools_ref_from_sequence',
+		'geneie_sequence_tools_encode',
+		'geneie_sequence_ref_index',
+		'geneie_sequence_ref_trunc',
+		'geneie_sequence_ref_valid',
+	],
+	$Reference: class {
+
+		/*
+		 * I want this to be private, but the pattern:
+		 *
+		 * var that = new Reference();
+		 * that.#sequence = this.#sequence;
+		 *
+		 * doesn't actually work in JavaScript, even though
+		 * I'm accessing the private member from inside the
+		 * class. Annoying.
+		 */
+		//#sequence;
+
+		/**
+		 * Constructs a new Reference from an optional WebAssembly pointer.
+		 *
+		 * This function is for advanced use: consider using Reference.fromSequence
+		 * instead.
+		 *
+		 * @param ptr:number The pointer to wrap. The pointer will have its lifetime
+		 * 	tied to the garbage collection of the Reference object.
+		 */
+		constructor(ptr) {
+			this.ptr = ptr != undefined ? ptr : _malloc(8);
+			_referenceRegistry.register(this, this.ptr, this);
+
+			Object.defineProperty(this, 'length', {
+				get() {
+					return {{{ makeGetValue('this.ptr', 0, 'u32') }}};
+				}
+			});
+		}
+
+		/**
+		 * Factory method for constructing a new Reference from a Sequence.
+		 *
+		 * This is the primary way to construct a new Reference.
+		 *
+		 * @param sequence:Sequence The sequence object to refer to.
+		 *
+		 * @returns A new Reference object.
+		 */
+		static fromSequence(sequence) {
+			var that = new this();
+			_geneie_sequence_tools_ref_from_sequence(that.ptr, sequence.ptr);
+			that.sequence = sequence;
+			return that;
+		}
+
+		/**
+		 * Returns a JavaScript String from the given reference.
+		 *
+		 * The reference can refer to _huge_ data in-memory, and
+		 * this function creates a new String by copying that memory.
+		 *
+		 * If this is a concern, consider using Reference.at()
+		 * to get only a single character at the given index.
+		 *
+		 * @returns A String object with the contents of the reference.
+		 */
+		toString() {
+			if (!_geneie_sequence_ref_valid(this.ptr))
+				return "";
+
+			return UTF8ToString(
+				{{{ makeGetValue('this.ptr', 4, 'u32') }}},
+				{{{ makeGetValue('this.ptr', 0, 'u32') }}}
+			);
+		}
+
+		*[Symbol.iterator]() {
+			for (let i = 0; i < this.length; i++) {
+				yield this.at(i);
+			}
+		}
+
+		/**
+		 * Returns a new Reference, beginning from the given
+		 * index.
+		 *
+		 * @param index The index to start the new Sequence from.
+		 *
+		 * @returns The new Sequence.
+		 */
+		index(index) {
+			var that = new Reference();
+			_geneie_sequence_ref_index(that.ptr, this.ptr, index);
+			that.sequence = this.sequence;
+			return that;
+		}
+
+		/**
+		 * Returns a new Reference, with the length set to
+		 * the given length.
+		 *
+		 * @param length The length of the new Sequence.
+		 *
+		 * @returns the new Sequence.
+		 */
+		trunc(length) {
+			var that = new Reference();
+			_geneie_sequence_ref_trunc(that.ptr, this.ptr, length);
+			that.sequence = this.sequence;
+			return that;
+		}
+
+		/**
+		 * Returns whether the current Reference is valid.
+		 *
+		 * It may be invalid because it iterated past the end
+		 * of the Sequence, or because it refers to Null.
+		 *
+		 * @returns true if the current Reference is valid, false otherwise.
+		 */
+		valid() {
+			return Boolean(_geneie_sequence_ref_valid(this.ptr));
+		}
+
+		/**
+		 * Returns a single character at the given index.
+		 *
+		 * @param index The index of the character to get.
+		 *
+		 * @returns A string containing a single character, or
+		 * 	undefined if the index is out of range.
+		 */
+		at(index) {
+			var that = this.index(index).trunc(1);
+
+			if (!that.valid())
+				return undefined;
+
+			return that.toString();
+		}
+
+		/**
+		 * Encodes the referenced sequence in-place.
+		 *
+		 * As sequences can be huge, this function encodes the
+		 * sequence in-place, mutating it irreversibly.
+		 *
+		 * This function returns a Promise, as processing can
+		 * be time-consuming on large data.
+		 *
+		 * After running encode(), the current sequence
+		 * refers to the remaining, unencoded sequence.
+		 *
+		 * @returns A Promise object which, when fulfilled,
+		 * 	will return an array containing the two Reference
+		 * 	objects [ encodedSequence, unencodedSequence ].
+		 * 	The encoded sequence will contain single-character
+		 * 	Amino Acid codes.
+		 */
+		encode() {
+			return new Promise(resolve => {
+				var refPair = _malloc(16);
+
+				_geneie_sequence_tools_encode(refPair, this.ptr);
+
+				{{{ makeSetValue('this.ptr', 0, makeGetValue('refPair', 8, 'u32'), 'u32') }}};
+				{{{ makeSetValue('this.ptr', 4, makeGetValue('refPair', 12, 'u32'), 'u32') }}};
+
+				var result = new Reference();
+
+				{{{ makeSetValue('result.ptr', 0, makeGetValue('refPair', 0, 'u32'), 'u32') }}};
+				{{{ makeSetValue('result.ptr', 4, makeGetValue('refPair', 4, 'u32'), 'u32') }}};
+
+				_free(refPair);
+
+				resolve([ result, this ]);
+			});
+		}
+
+		/**
+		 * Splices the sequence, using the given spliceFunction
+		 * to determine sections to remove.
+		 *
+		 * The spliceFunction receives a Reference to the sequence
+		 * to splice. Use Reference.at() or `for...of` on the Reference
+		 * object to iterate the characters, one by one, to search
+		 * for sections to splice; then use Reference.index() and
+		 * Reference.trunc() to create a new Reference object representing
+		 * the section to splice. Finally, return the new reference.
+		 *
+		 * This function mutates the sequence in-place.
+		 *
+		 * @param spliceFunction A function taking a Reference and
+		 * 	returning a new Reference, representing the section to
+		 * 	splice.
+		 *
+		 * @returns A new Promise object which, when fulfilled,
+		 * 	will return the new Sequence.
+		 */
+		spliceAll(spliceFunction) {
+			return new Promise(resolve => {
+				let realSpliceArg = (outParam, inParam) => {
+					let result = spliceFunction(new self(inParam)); // ?!?
+					{{{ makeSetValue('outParam', 4, 'getValue(result.ptr + 4, "u32")', 'u32') }}}
+					{{{ makeSetValue('outParam', 0, 'getValue(result.ptr, "u32")', 'u32') }}}
+				};
+				var functionPointer = addFunction(realSpliceArg);
+
+				_geneie_sequence_tools_splice(
+					this.ref.ptr,
+					this.ref.ptr,
+					functionPointer
+				);
+
+				removeFunction(functionPointer);
+
+				resolve(this);
+			});
+		}
+	},
+
+	$Sequence__deps: [
+		'sequenceRegistry',
 		'malloc',
 		'free',
 		'geneie_sequence_from_string',
+		'geneie_sequence_copy',
 	],
-	$sequence: string => {
-		var sequence = _malloc(8);
-		var strlen = lengthBytesUTF8(string) + 1;
-		var string_tmp = _malloc(strlen);
-		stringToUTF8(string, string_tmp, strlen);
-		_geneie_sequence_from_string(sequence, string_tmp);
-		_free(string_tmp);
-		return sequence;
-	},
+	$Sequence: class {
+		/**
+		 * Constructs a raw Sequence object.
+		 *
+		 * This is for advanced use only: consider using
+		 * Sequence.fromString() instead.
+		 */
+		constructor() {
+			var sequence = _malloc(8);
 
-	$freeSequence__deps: [
-		'geneie_sequence_free',
-		'free',
-	],
-	$freeSequence: sequence => {
-		_geneie_sequence_free(sequence);
-		_free(sequence);
-	},
+			this.ptr = sequence;
 
-	$encode__deps: [
-		'malloc',
-		'geneie_sequence_tools_ref_from_sequence',
-		'geneie_sequence_tools_encode',
-		'free',
-	],
-	$encode: function(string) {
-		var sequence = this.sequence(string);
-		var ref = _malloc(8);
-		var ref_pair = _malloc(16);
+			_sequenceRegistry.register(this, this.ptr);
+		}
 
-		_geneie_sequence_tools_ref_from_sequence(ref, sequence);
-		_geneie_sequence_tools_encode(ref_pair, ref);
+		/**
+		 * Constructs a new Sequence representing the given
+		 * JavaScript string.
+		 *
+		 * This makes Geneie functions available, as well as
+		 * populating the Sequence.ref property with a Reference
+		 * object representing this Sequence.
+		 *
+		 * Many Sequence methods are wrappers around the
+		 * corresponding Reference methods, except that they
+		 * copy the Sequence so that the original is not mutated.
+		 *
+		 * @param string The string to build the Sequence from.
+		 *
+		 * @returns A new Sequence object.
+		 */
+		static fromString(string) {
+			var that = new Sequence();
 
-		var result = UTF8ToString(
-			{{{ makeGetValue('ref_pair', 4, 'u32') }}},
-			{{{ makeGetValue('ref_pair', 0, 'u32') }}}
-		);
-		var remainder = UTF8ToString(
-			{{{ makeGetValue('ref_pair', 12, 'u32') }}},
-			{{{ makeGetValue('ref_pair', 8, 'u32') }}}
-		);
+			var strlen = lengthBytesUTF8(string) + 1;
+			var string_tmp = _malloc(strlen);
+			stringToUTF8(string, string_tmp, strlen);
 
-		_free(ref_pair);
-		_free(ref);
-		this.freeSequence(sequence);
-		return [result, remainder];
+			_geneie_sequence_from_string(that.ptr, string_tmp);
+			_free(string_tmp);
+
+			that.ref = Reference.fromSequence(that);
+
+			return that;
+		}
+
+		*[Symbol.iterator]() {
+			// Feels like this shouldn't be necessary
+			// can't figure out how to just "return"
+			// the new ref in a way that works though
+			for (const c of Reference.fromSequence(this))
+				yield c;
+		}
+
+		/**
+		 * Creates an identical copy of this Sequence.
+		 *
+		 * The copy can be modified without affecting this Sequence.
+		 *
+		 * @returns a new Sequence object.
+		 */
+		copy() {
+			var that = new Sequence();
+			_geneie_sequence_copy(that.ptr, this.ptr);
+			that.ref = Reference.fromSequence(that);
+			return that;
+		}
+
+		/**
+		 * Returns a JavaScript String of this Sequence.
+		 *
+		 * The sequence can refer to _huge_ data in-memory, and
+		 * this function creates a new String by copying that memory.
+		 *
+		 * If this is a concern, consider using Reference.at()
+		 * to get only a single character at the given index, or
+		 * a `for...of` loop over the Sequence to iterate the characters
+		 * one-by-one.
+		 */
+		toString() {
+			return Reference.fromSequence(this).toString();
+		}
+
+		/**
+		 * Encodes the current Sequence and returns the result.
+		 *
+		 * This function works on a copy of the Sequence: the current
+		 * Sequence is not mutated.
+		 *
+		 * @returns See Reference.fromSequence().
+		 */
+		encode() {
+			return Reference.fromSequence(this.copy()).encode();
+		}
+
+		/**
+		 * Splices the current Sequence and returns the result.
+		 *
+		 * This function works on a copy of the Sequence: the current
+		 * Sequence is not mutated.
+		 *
+		 * @param spliceFunction see Reference.spliceAll().
+		 * @returns see Reference.spliceAll().
+		 */
+		spliceAll(spliceFunction) {
+			return Reference.fromSequence(this.copy()).spliceAll(spliceFunction);
+		}
 	},
 });

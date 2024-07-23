@@ -1,3 +1,2 @@
-sequence
-freeSequence
-encode
+Reference
+Sequence

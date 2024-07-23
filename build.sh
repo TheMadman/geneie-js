@@ -8,7 +8,7 @@ export CFLAGS=
 export CXXFLAGS=
 export LDFLAGS=
 
-export EMCCFLAGS="--js-library=""$PROJECT_DIR""/library.js -sMODULARIZE=1 -s"'EXPORT_NAME="Geneie"'" -sEXPORTED_FUNCTIONS=@exports.txt -sEXPORTED_RUNTIME_METHODS=@runtime.txt -O3"
+export EMCCFLAGS="--js-library=""$PROJECT_DIR""/library.js -sMODULARIZE=1 -s"'EXPORT_NAME="Geneie"'" -sEXPORTED_FUNCTIONS=@exports.txt -sEXPORTED_RUNTIME_METHODS=@runtime.txt -sALLOW_TABLE_GROWTH=1 -O3"
 
 mkdir -p "$PREFIX"
 
