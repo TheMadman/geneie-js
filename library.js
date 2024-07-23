@@ -151,12 +151,12 @@ addToLibrary({
 		 * 	undefined if the index is out of range.
 		 */
 		at(index) {
-			var that = this.index(index).trunc(1);
+			var that = this.index(index);
 
 			if (!that.valid())
 				return undefined;
 
-			return that.toString();
+			return that.trunc(1).toString();
 		}
 
 		/**
