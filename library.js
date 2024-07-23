@@ -290,8 +290,6 @@ addToLibrary({
 			_geneie_sequence_from_string(that.ptr, string_tmp);
 			_free(string_tmp);
 
-			that.ref = Reference.fromSequence(that);
-
 			return that;
 		}
 
@@ -313,7 +311,6 @@ addToLibrary({
 		copy() {
 			var that = new Sequence();
 			_geneie_sequence_copy(that.ptr, this.ptr);
-			that.ref = Reference.fromSequence(that);
 			return that;
 		}
 
