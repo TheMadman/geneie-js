@@ -31,9 +31,11 @@ addToLibrary({
 		 * var that = new Reference();
 		 * that.#sequence = this.#sequence;
 		 *
-		 * doesn't actually work in JavaScript, even though
-		 * I'm accessing the private member from inside the
-		 * class. Annoying.
+		 * doesn't actually work here, probably because we're
+		 * using a class expression and not `class Reference {`.
+		 *
+		 * The latter breaks the emscripten pipeline for some
+		 * reason.
 		 */
 		//#sequence;
 
@@ -187,6 +189,7 @@ addToLibrary({
 				{{{ makeSetValue('this.ptr', 4, makeGetValue('refPair', 12, 'u32'), 'u32') }}};
 
 				var result = new Reference();
+				result.sequence = this.sequence;
 
 				{{{ makeSetValue('result.ptr', 0, makeGetValue('refPair', 0, 'u32'), 'u32') }}};
 				{{{ makeSetValue('result.ptr', 4, makeGetValue('refPair', 4, 'u32'), 'u32') }}};
