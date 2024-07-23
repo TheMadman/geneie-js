@@ -43,7 +43,7 @@ addToLibrary({
 		 * This function is for advanced use: consider using Reference.fromSequence
 		 * instead.
 		 *
-		 * @param ptr:number The pointer to wrap. The pointer will have its lifetime
+		 * @param {number} ptr The pointer to wrap. The pointer will have its lifetime
 		 * 	tied to the garbage collection of the Reference object.
 		 */
 		constructor(ptr) {
@@ -62,9 +62,9 @@ addToLibrary({
 		 *
 		 * This is the primary way to construct a new Reference.
 		 *
-		 * @param sequence:Sequence The sequence object to refer to.
+		 * @param {Sequence} sequence The sequence object to refer to.
 		 *
-		 * @returns A new Reference object.
+		 * @return {Reference} A new Reference object.
 		 */
 		static fromSequence(sequence) {
 			var that = new this();
@@ -82,7 +82,7 @@ addToLibrary({
 		 * If this is a concern, consider using Reference.at()
 		 * to get only a single character at the given index.
 		 *
-		 * @returns A String object with the contents of the reference.
+		 * @return {String} A String object with the contents of the reference.
 		 */
 		toString() {
 			if (!this.valid())
@@ -104,9 +104,9 @@ addToLibrary({
 		 * Returns a new Reference, beginning from the given
 		 * index.
 		 *
-		 * @param index The index to start the new Sequence from.
+		 * @param {number} index The index to start the new Sequence from.
 		 *
-		 * @returns The new Sequence.
+		 * @return {Reference} The new Reference.
 		 */
 		index(index) {
 			var that = new Reference();
@@ -119,9 +119,9 @@ addToLibrary({
 		 * Returns a new Reference, with the length set to
 		 * the given length.
 		 *
-		 * @param length The length of the new Sequence.
+		 * @param {number} length The length of the new Sequence.
 		 *
-		 * @returns the new Sequence.
+		 * @return {Reference} the new Reference.
 		 */
 		trunc(length) {
 			var that = new Reference();
@@ -136,7 +136,7 @@ addToLibrary({
 		 * It may be invalid because it iterated past the end
 		 * of the Sequence, or because it refers to Null.
 		 *
-		 * @returns true if the current Reference is valid, false otherwise.
+		 * @return {Boolean} true if the current Reference is valid, false otherwise.
 		 */
 		valid() {
 			return Boolean(_geneie_sequence_ref_valid(this.ptr));
@@ -145,9 +145,9 @@ addToLibrary({
 		/**
 		 * Returns a single character at the given index.
 		 *
-		 * @param index The index of the character to get.
+		 * @param {number} index The index of the character to get.
 		 *
-		 * @returns A string containing a single character, or
+		 * @return {String} A string containing a single character, or
 		 * 	undefined if the index is out of range.
 		 */
 		at(index) {
@@ -171,7 +171,7 @@ addToLibrary({
 		 * After running encode(), the current sequence
 		 * refers to the remaining, unencoded sequence.
 		 *
-		 * @returns A Promise object which, when fulfilled,
+		 * @return {Promise} A Promise object which, when fulfilled,
 		 * 	will return an array containing the two Reference
 		 * 	objects [ encodedSequence, unencodedSequence ].
 		 * 	The encoded sequence will contain single-character
@@ -210,11 +210,11 @@ addToLibrary({
 		 *
 		 * This function mutates the sequence in-place.
 		 *
-		 * @param spliceFunction A function taking a Reference and
+		 * @param {function} spliceFunction A function taking a Reference and
 		 * 	returning a new Reference, representing the section to
 		 * 	splice.
 		 *
-		 * @returns A new Promise object which, when fulfilled,
+		 * @return {Promise} A new Promise object which, when fulfilled,
 		 * 	will return the new Sequence.
 		 */
 		spliceAll(spliceFunction) {
@@ -273,9 +273,9 @@ addToLibrary({
 		 * corresponding Reference methods, except that they
 		 * copy the Sequence so that the original is not mutated.
 		 *
-		 * @param string The string to build the Sequence from.
+		 * @param {String} string The string to build the Sequence from.
 		 *
-		 * @returns A new Sequence object.
+		 * @return {Sequence} A new Sequence object.
 		 */
 		static fromString(string) {
 			var that = new Sequence();
@@ -305,7 +305,7 @@ addToLibrary({
 		 *
 		 * The copy can be modified without affecting this Sequence.
 		 *
-		 * @returns a new Sequence object.
+		 * @return {Sequence} a new Sequence object.
 		 */
 		copy() {
 			var that = new Sequence();
@@ -335,7 +335,7 @@ addToLibrary({
 		 * This function works on a copy of the Sequence: the current
 		 * Sequence is not mutated.
 		 *
-		 * @returns See Reference.fromSequence().
+		 * @return {Promise} See Reference.encode().
 		 */
 		encode() {
 			return Reference.fromSequence(this.copy()).encode();
@@ -347,8 +347,8 @@ addToLibrary({
 		 * This function works on a copy of the Sequence: the current
 		 * Sequence is not mutated.
 		 *
-		 * @param spliceFunction see Reference.spliceAll().
-		 * @returns see Reference.spliceAll().
+		 * @param {function} spliceFunction see Reference.spliceAll().
+		 * @return {Array} see Reference.spliceAll().
 		 */
 		spliceAll(spliceFunction) {
 			return Reference.fromSequence(this.copy()).spliceAll(spliceFunction);
