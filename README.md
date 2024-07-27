@@ -18,7 +18,7 @@ git submodule update --init
 
 `build.sh` will build them in a new directory called `prefix/`,
 then build the result with `emcc` into the files `libgeneie.wasm`
-and `libgeneie.js` in the current directory. Installing
+and `libgeneie.js` in the `bin` directory. Installing
 both files into your site will then provide the JavaScript API via
 a Promise object called, `Geneie`.
 

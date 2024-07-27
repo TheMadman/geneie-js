@@ -1,0 +1,34 @@
+{
+  "devDependencies": {
+    "jsdoc": "^4.0.3"
+  },
+  "name": "geneie-js",
+  "description": "This project provides both a JavaScript interface for Geneie, and a convenience script for building Geneie and its dependencies for WebAssembly using emsdk.",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "bin/libgeneie.mjs",
+  "files": [
+    "bin/libgeneie.mjs",
+    "bin/libgeneie.wasm"
+  ],
+  "scripts": {
+    "prebuild": "git submodule update --init",
+    "build": "./build.sh",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheMadman/geneie-js.git"
+  },
+  "keywords": [
+    "biology",
+    "microbiology",
+    "library"
+  ],
+  "author": "Marcus Harrison",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/TheMadman/geneie-js/issues"
+  },
+  "homepage": "https://github.com/TheMadman/geneie-js#readme"
+}

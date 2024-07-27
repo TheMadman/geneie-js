@@ -3,6 +3,7 @@
 set -e -o pipefail
 
 export PROJECT_DIR="$(dirname "$(realpath "$0")")"
+export OUTPUT="$PROJECT_DIR/bin"
 export PREFIX="$PROJECT_DIR/prefix"
 export CFLAGS=
 export CXXFLAGS=
@@ -27,3 +28,6 @@ wait
 
 emcc $EMCCFLAGS "$PREFIX"/lib/lib{adt,geneie}static.a -o libgeneie.js
 emcc $EMCCFLAGS "$PREFIX"/lib/lib{adt,geneie}static.a -o libgeneie.mjs
+
+mkdir -p "$OUTPUT"
+mv libgeneie.{js,mjs,wasm} "$OUTPUT"

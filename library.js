@@ -89,6 +89,24 @@ addToLibrary({
 		}
 
 		/**
+		 * Factory method for constructing a new Reference from a JavaScript
+		 * string.
+		 *
+		 * This is a convenience function around creating a new Sequence
+		 * from the string, then wrapping it in a new Reference.
+		 *
+		 * Note that the Reference won't mutate the JavaScript string in-place.
+		 * A copy is made into WebAssembly, which is then the data that is mutated.
+		 *
+		 * @param {string} string The JavaScript string to create a reference from.
+		 *
+		 * @return {Reference} A new Reference object.
+		 */
+		static fromString(string) {
+			return Reference.fromSequence(Sequence.fromString(string));
+		}
+
+		/**
 		 * Returns a JavaScript String from the given reference.
 		 *
 		 * The reference can refer to _huge_ data in-memory, and
