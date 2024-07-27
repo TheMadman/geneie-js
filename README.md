@@ -7,7 +7,7 @@ and its dependencies for WebAssembly using emsdk.
 # Building
 
 Before running `build.sh`, you should have _installed_
-and _activated_ emsdk: https://emscripten.org/docs/getting\_started/downloads.html#installation-instructions-using-the-emsdk-recommended
+and _activated_ emsdk: https://emscripten.org/docs/getting_started/downloads.html#installation-instructions-using-the-emsdk-recommended
 
 You must also initialize the git submodules, if you have
 not done so:
