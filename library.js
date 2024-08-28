@@ -75,8 +75,6 @@ addToLibrary({
 		/**
 		 * Factory method for constructing a new Reference from a Sequence.
 		 *
-		 * This is the primary way to construct a new Reference.
-		 *
 		 * @param {Sequence} sequence The sequence object to refer to.
 		 *
 		 * @return {Reference} A new Reference object.
@@ -129,7 +127,7 @@ addToLibrary({
 
 		*[Symbol.iterator]() {
 			for (let i = 0; i < this.length; i++) {
-				yield this.at(i);
+				yield this.index(i);
 			}
 		}
 
@@ -158,7 +156,7 @@ addToLibrary({
 		 */
 		trunc(length) {
 			var that = new Reference();
-			_geneie_sequence_ref_trunc(that.ptr, this.ptr, length);
+			_geneie_sequence_ref_trunc(that.ptr, this.ptr, Math.min(length, this.length));
 			that.sequence = this.sequence;
 			return that;
 		}
@@ -354,7 +352,7 @@ addToLibrary({
 			return that;
 		}
 
-		static fromRef(ref) {
+		static fromReference(ref) {
 			var that = new Sequence();
 			_geneie_sequence_tools_sequence_from_ref(that.ptr, ref.ptr);
 			return that;
@@ -409,7 +407,7 @@ addToLibrary({
 		encode() {
 			return Reference.fromSequence(this.copy())
 				.encode()
-				.then(arr => arr.map(ref => Sequence.fromRef(ref)));
+				.then(arr => arr.map(ref => Sequence.fromReference(ref)));
 		}
 
 		/**
@@ -425,7 +423,7 @@ addToLibrary({
 		spliceAll(spliceFunction) {
 			return Reference.fromSequence(this.copy())
 				.spliceAll(spliceFunction)
-				.then(ref => Sequence.fromRef(ref));
+				.then(ref => Sequence.fromReference(ref));
 		}
 	},
 });

@@ -3,8 +3,8 @@
     "jsdoc": "^4.0.3"
   },
   "name": "geneie-js",
-  "description": "This project provides both a JavaScript interface for Geneie, and a convenience script for building Geneie and its dependencies for WebAssembly using emsdk.",
-  "version": "0.1.0",
+  "description": "This project provides a JavaScript interface for Geneie, a library for processing DNA, mRNA and Amino Acid codes.",
+  "version": "0.2.0",
   "type": "module",
   "main": "bin/libgeneie.mjs",
   "files": [
