@@ -4,7 +4,7 @@
   },
   "name": "geneie-js",
   "description": "This project provides a JavaScript interface for Geneie, a library for processing DNA, mRNA and Amino Acid codes.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "main": "bin/libgeneie.mjs",
   "files": [

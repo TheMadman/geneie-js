@@ -59,7 +59,7 @@ The following functions are provided for both objects:
 
     let geneie = await Geneie();
     let sequence = geneie.Sequence.fromString("ACT-CTG");
-    console.log(sequence.toString();
+    console.log(sequence.toString());
     ```
 - `toString()` - Returns a JavaScript string representation.
   - See `fromString()` above for example usage
@@ -71,10 +71,11 @@ The following functions are provided for both objects:
   
     let sequence = geneie.Sequence.fromString("ACT-CTG");
     for (let c of sequence) {
-        console.log(c.trunc(1).toString())
+        console.log(c.trunc(1).toString());
     }
     ```
 - `spliceAll(callable)` - Using the provided callable, splices the sequence.
+  - As splicing can be time-consuming on large sequences, this function returns a Promise object.
   - The callable will be passed a `Reference` argument (never a sequence, even when called on `Sequence` objects), and must return a `Reference` or a falsy value
     - The `Reference` returned must be from the `Reference` passed, using the `Reference`-specific methods described below
   - The callable will be called with the original sequence first. If the callable returns a new Reference, it will be called again with the remaining sequence. If the callable returns a falsy value, the function will return the sequence with the returned `Reference`s removed.
@@ -95,6 +96,7 @@ The following functions are provided for both objects:
     console.log(sequence.toString(), result.toString()); // ACT-CTG ACT
     ```
 - `encode()` - Encodes a sequence of DNA/mRNA into Amino Acid codes. Returns an array with two sequences: the result of encoding, and the start of the sequence that couldn't be encoded, which may be empty if the whole sequence was successfully encoded.
+  - As encoding can be time-consuming on large sequences, this function returns a Promise object.
   - Example:
     ```js
     import Geneie from "geneie-js";
